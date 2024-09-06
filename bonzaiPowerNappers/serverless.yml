@@ -1,0 +1,47 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: folkuniversitetet123
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: bonzaiPowerNappers
+frameworkVersion: "4"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-north-1
+  deploymentMethod: direct
+
+functions:
+  GetAllRooms:
+    handler: functions/GetAllRooms/index.handler
+    events:
+      - httpApi:
+          path: /api/rooms
+          method: get
+
+  BookRoom:
+    handler: functions/BookRoom/index.handler
+    events:
+      - httpApi:
+          path: /api/booking
+          method: post
+
+  ChangeBooking:
+    handler: functions/ChangeBooking/index.handler
+    events:
+      - httpApi:
+          path: /api/booking/{id}
+          method: put
+
+  CancelBooking:
+    handler: functions/CancelBooking/index.handler
+    events:
+      - httpApi:
+          path: /api/booking/{id}
+          method: delete
+
+  GetAllBookings:
+    handler: functions/GetAllBookings/index.handler
+    events:
+      - httpApi:
+          path: /api/booking
+          method: get
