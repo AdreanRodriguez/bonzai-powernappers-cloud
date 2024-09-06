@@ -1,5 +1,5 @@
 # "org" ensures this Service is used with the correct Serverless Framework Access Key.
-org: folkuniversitetet123
+org: ${file(./local.yml):organisation}
 # "service" is the name of this project. This will also be added to your AWS resource names.
 service: bonzaiPowerNappers
 frameworkVersion: "4"
@@ -9,6 +9,15 @@ provider:
   runtime: nodejs20.x
   region: eu-north-1
   deploymentMethod: direct
+  iam:
+    role: ${file(./local.yml):iamRole}
+
+build:
+  esbuild:
+    minify: true
+
+package:
+  individually: true
 
 functions:
   GetAllRooms:
@@ -45,3 +54,33 @@ functions:
       - httpApi:
           path: /api/booking
           method: get
+
+resources:
+  Resources:
+    BonzaiRoomsTable: # Första tabellen (bonzai-rooms-db)
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "bonzai-rooms-db" # Namnet på din tabell
+        AttributeDefinitions:
+          - AttributeName: "roomType" # Definiera attribut för din partition key
+            AttributeType: "S" # S för sträng
+          - AttributeName: "roomId" # Definiera attribut för din sort key (om du vill ha en)
+            AttributeType: "S" # S för sträng
+        KeySchema:
+          - AttributeName: "roomType" # Partition key
+            KeyType: HASH # Detta är din PK (Partition Key)
+          - AttributeName: "roomId" # Sort key
+            KeyType: RANGE # Detta är din SK (Sort Key)
+        BillingMode: PAY_PER_REQUEST # Betalning per användning
+
+    BonzaiBookingTable: # Andra tabellen (bonzai-users-db)
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "bonzai-booking-db"
+        AttributeDefinitions:
+          - AttributeName: "bookingId"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "bookingId"
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST

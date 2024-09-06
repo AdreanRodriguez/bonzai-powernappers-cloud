@@ -1,0 +1,21 @@
+{
+  "unknown": {
+    "versionSfCore": null,
+    "versionFramework": "4.2.5",
+    "isWithinCompose": false,
+    "composeOrgName": null,
+    "composeServiceName": null,
+    "command": [],
+    "options": {},
+    "error": {
+      "message": "app-name may contain only numbers, uppercase letters, lowercase letters, dashes, and underscores. - Please contact support and provide this identifier to reference this issue - Q07BJRG0T705",
+      "stack": "Error: app-name may contain only numbers, uppercase letters, lowercase letters, dashes, and underscores. - Please contact support and provide this identifier to reference this issue - Q07BJRG0T705\n    at _AppsClient.makeRequest (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:210:422326)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async _AppsClient._post (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:210:421500)\n    at async _AppsClient.create (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:210:428139)\n    at async ensureAppInConfigFile (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:918:690)\n    at async setOrgAndApp (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:912:6284)\n    at async routeNew (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:912:220)\n    at async commandOnboarding (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:910:5108)\n    at async catchAllHandler (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:935:19761)\n    at async runCommand (file:///C:/Users/loco_/.serverless/releases/4.2.5/package/dist/sf-core.js:939:4149)"
+    },
+    "machineId": "4f910b528b97882f4a0dc6efd4242146",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
