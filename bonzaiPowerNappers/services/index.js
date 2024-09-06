@@ -1,10 +1,7 @@
-import DynamoDbPkg from "@aws-sdk/client-dynamodb";
-import DynamoDbDocumentPkg from "@aws-sdk/lib-dynamodb";
-
-const { DynamoDB } = DynamoDbPkg;
-const { DynamoDBDocument } = DynamoDbDocumentPkg;
+const { DynamoDB } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocument } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDB();
 const db = DynamoDBDocument.from(client);
 
-export default db;
+module.exports = { db };
