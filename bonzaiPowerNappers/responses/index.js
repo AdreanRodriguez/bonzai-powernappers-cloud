@@ -1,4 +1,4 @@
-exports.sendResponse = async (status, data) => {
+function sendResponse(status, data) {
   return {
     statusCode: status,
     headers: {
@@ -6,14 +6,16 @@ exports.sendResponse = async (status, data) => {
     },
     body: JSON.stringify({ success: true, data }),
   };
-};
+}
 
-exports.sendError = async (status, data) => {
+function sendError(status, message) {
   return {
     statusCode: status,
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ success: false, data }),
+    body: JSON.stringify({ success: false, message: message }),
   };
-};
+}
+
+module.exports = { sendResponse, sendError };
