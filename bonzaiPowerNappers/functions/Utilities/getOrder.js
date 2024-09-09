@@ -1,4 +1,3 @@
-const { sendResponse, sendError } = require("../../responses/index.js");
 const { db } = require("../../services/index.js");
 
 exports.getOrder = async (id) => {
@@ -11,11 +10,20 @@ exports.getOrder = async (id) => {
     });
 
     if (Items.length < 1) {
-      return sendError(404, "No orders found");
+      return {
+        success: false,
+        message: "No orders found",
+      };
     } else {
-      return sendResponse(200, Items);
+      return {
+        success: true,
+        Items,
+      };
     }
   } catch (error) {
-    return sendError(404, { message: error.message });
+    return {
+      success: false,
+      message: error.message,
+    };
   }
 };
