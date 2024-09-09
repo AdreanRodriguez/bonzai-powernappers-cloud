@@ -27,6 +27,13 @@ functions:
           path: /api/rooms
           method: get
 
+  AddMultipleNewRooms:
+    handler: functions/AddMultipleRooms/index.handler
+    events:
+      - httpApi:
+          path: /api/rooms
+          method: post
+
   BookRoom:
     handler: functions/BookRoom/index.handler
     events:
