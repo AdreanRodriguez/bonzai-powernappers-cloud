@@ -6,7 +6,6 @@ const { v4: uuid } = require("uuid");
 // const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
 
 exports.handler = async (event) => {
-
   try {
     const { checkIn, checkOut, roomTypes, guestName, guestEmail, nmbrOfGuests } = JSON.parse(
       event.body
@@ -15,7 +14,7 @@ exports.handler = async (event) => {
     if (checkIn && checkOut && roomTypes && guestName && guestEmail && nmbrOfGuests) {
       let totalPrice = 0;
       let nmbrOfBookedGuests = 0;
-      
+
       const bookingInformation = {
         checkIn: new Date(checkIn),
         checkOut: new Date(checkOut),
@@ -25,11 +24,12 @@ exports.handler = async (event) => {
         guestEmail,
         nmbrOfGuests,
       };
-      
+
       const bookedRooms = [];
       const bookingId = uuid().substring(0, 8);
-      const numberOfNights = bookingInformation.checkOut.getDay() - bookingInformation.checkIn.getDay();
-      
+      const numberOfNights =
+        bookingInformation.checkOut.getDay() - bookingInformation.checkIn.getDay();
+
       for (let i = 0; i > roomTypes.length; i++) {
         const response = await getRoom(roomTypes[i]);
         if (response.success) {
@@ -38,21 +38,27 @@ exports.handler = async (event) => {
           bookedRooms.push(room);
           nmbrOfBookedGuests += room.beds;
           totalPrice += room.price;
-
-          if (nmbrOfBookedGuests === nmbrOfGuests) {
-            bookingInformation.bookedRooms = bookedRooms;
-            bookingInformation.totalPrice = totalPrice *= numberOfNights
-            for (let i = 0; i < bookedRooms.length; i++) {
-              await addBookingToDb(bookingInformation, bookedRooms[i]);
-            }
-            return sendResponse(200, bookingInformation);
-          }
-        } else {
-          for (let i = 0; i < bookedRooms.length; i++) {
-           updateRoomStatus(bookedRooms[i], false); 
-          }
-          return sendError(404, response.message);
         }
+      }
+
+      if (nmbrOfBookedGuests === nmbrOfGuests) {
+        bookingInformation.bookedRooms = bookedRooms;
+        bookingInformation.totalPrice = totalPrice *= numberOfNights;
+        for (let i = 0; i < bookedRooms.length; i++) {
+          const response = await addBookingToDb(bookingInformation, bookedRooms[i]);
+          if (!response.success) {
+            return sendError(404, response.message);
+          }
+        }
+        return sendResponse(200, bookingInformation);
+      } else {
+        for (let i = 0; i < bookedRooms.length; i++) {
+          const response = await updateRoomStatus(bookedRooms[i], false);
+          if (!response.success) {
+            return sendError(404, response.message);
+          }
+        }
+        return sendError(404, "Not right amount of people booked");
       }
     }
     return sendError(
