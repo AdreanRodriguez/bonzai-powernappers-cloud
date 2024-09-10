@@ -43,7 +43,7 @@ exports.handler = async (event) => {
             bookingInformation.bookedRooms = bookedRooms;
             bookingInformation.totalPrice = totalPrice *= numberOfNights
             for (let i = 0; i < bookedRooms.length; i++) {
-              const response = await addBookingToDb(bookingInformation, bookedRooms[i]);
+              await addBookingToDb(bookingInformation, bookedRooms[i]);
             }
             return sendResponse(200, bookingInformation);
           }
@@ -51,7 +51,6 @@ exports.handler = async (event) => {
           for (let i = 0; i < bookedRooms.length; i++) {
            updateRoomStatus(bookedRooms[i], false); 
           }
-          return sendError(404, response.message);
           return sendError(404, response.message);
         }
       }
