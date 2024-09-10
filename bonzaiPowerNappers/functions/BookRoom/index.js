@@ -2,8 +2,8 @@ const { sendResponse, sendError } = require("../../responses/index.js");
 const { db } = require("../../services/index.js");
 const { v4: uuid } = require("uuid");
 
-// const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
-// const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
+const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
+const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
 
 exports.handler = async (event) => {
   try {
