@@ -23,12 +23,6 @@ exports.handler = async (event) => {
                 return sendError(400, "Please enter required information. ('roomType', 'floorNmbr', and 'roomNmbr').");
             }
 
-            // Kontrollera att roomType är giltig
-            const validateRoomTypes = ["single", "double", "suite"];
-            if (!validateRoomTypes.includes(room.roomType)) {
-                return sendError(400, `Invalid room type: ${room.roomType}. Must be single, double, or suite.`);
-            }
-
             // Anropa funktionen för att lägga till rummet i databasen
             const result = await addRoomToDb(room.roomType, room.floorNmbr, room.roomNmbr);
 
