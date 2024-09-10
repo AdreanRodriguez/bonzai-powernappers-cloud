@@ -10,6 +10,6 @@ exports.handler = async (event) => {
     });
     return sendResponse(200, { message: Items });
   } catch (error) {
-    return sendError(404, { message: error.message })
+    return sendError(404, error.message)
   }
 };
