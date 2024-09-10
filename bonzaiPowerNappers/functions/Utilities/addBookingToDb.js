@@ -3,7 +3,6 @@ const { db } = require("../../services");
 async function addBookingToDb(bookingInformation, room) {
 
     if (bookingInformation && room) {
-
         try {
             await db.put({
                 TableName: 'bonzai-booking-db',
@@ -16,11 +15,7 @@ async function addBookingToDb(bookingInformation, room) {
                     guestEmail: bookingInformation.guestEmail,
                     totalPrice: bookingInformation.totalPrice,
                     bookedRoom: room
-
-
                 }
-
-
             })
            return{
             success: true,
@@ -28,7 +23,6 @@ async function addBookingToDb(bookingInformation, room) {
            }
 
         } catch (error) {
-
             return {
                 success: false,
                 message: error.message
