@@ -1,14 +1,12 @@
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { db } = require("../../services/index.js");
 const { v4: uuid } = require("uuid");
-const { getRoom } = require("../Utilities/getRoom.js");
+
 const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
 const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
 
 exports.handler = async (event) => {
   try {
-    const bookingId = uuid().substring(0, 8);
-
     const { checkIn, checkOut, roomTypes, guestName, guestEmail, nmbrOfGuests } = JSON.parse(
       event.body
     );
@@ -28,10 +26,11 @@ exports.handler = async (event) => {
       };
 
       const bookedRooms = [];
+      const bookingId = uuid().substring(0, 8);
       const numberOfNights =
         bookingInformation.checkOut.getDay() - bookingInformation.checkIn.getDay();
 
-      for (let i = 0; i < roomTypes.length; i++) {
+      for (let i = 0; i > roomTypes.length; i++) {
         const response = await getRoom(roomTypes[i]);
         if (response.success) {
           const room = response.item;
