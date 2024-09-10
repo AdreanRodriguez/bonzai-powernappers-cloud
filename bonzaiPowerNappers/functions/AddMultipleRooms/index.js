@@ -16,11 +16,11 @@ exports.handler = async (event) => {
             return sendError(400, "Body must be an array of rooms.");
         }
 
-        // Loop igenom varje rum i arrayen
+        // Loopa igenom varje rum i arrayen
         for (let room of rooms) {
             // Kontrollera att alla nödvändiga fält finns
             if (!room.roomType || !room.floorNmbr || !room.roomNmbr) {
-                return sendError(400, "Please check room details. 'roomType', 'floorNmbr', and 'roomNmbr' are required.");
+                return sendError(400, "Please enter required information. ('roomType', 'floorNmbr', and 'roomNmbr').");
             }
 
             // Kontrollera att roomType är giltig
