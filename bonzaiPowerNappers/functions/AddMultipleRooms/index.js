@@ -1,90 +1,47 @@
-const { db } = require("../../services/index.js");
-const { sendError, sendResponse } = require("../../responses");
-
-// Lägga till rum i databasen
-async function addRoomsToDb(roomType, roomId, price, isBooked, beds, floorNmbr, roomNmbr) {
-    const params = {
-        TableName: "bonzai-rooms-db",
-        Item: {
-            roomType,
-            roomId,
-            price,
-            isBooked,
-            beds,
-            floorNmbr,
-            roomNmbr
-        }
-    };
-
-    try {
-        await db.put(params);
-        return true;
-    } catch (error) {
-        return { false: error.message };
-    }
-}
-
-// generera roomId baserat på roomType och roomNmbr
-function generateRoomId(roomType, roomNmbr) {
-    if (roomType === "suite") {
-        return `SU${roomNmbr}`;
-    }
-    return `${roomType.charAt(0).toUpperCase()}R${roomNmbr}`;
-}
-
-// hämta standardpris och antal sängar för rumsstyp
-function getDefaultPriceAndBeds(roomType) {
-    switch (roomType) {
-        case "single":
-            return { price: 500, beds: 1 };
-        case "double":
-            return { price: 1000, beds: 2 };
-        case "suite":
-            return { price: 1500, beds: 3 };
-        default:
-            return { price: 0, beds: 0 }; // För att undvika fel om något går fel
-    }
-}
+const { sendError, sendResponse } = require("../../responses/index.js");
+const { addRoomToDb } = require("../Utilities/addRoomToDb.js");
 
 // Handler
 exports.handler = async (event) => {
-    const rooms = JSON.parse(event.body);
-
-    for (let room of rooms) {
-        // Kontrollera att alla nödvändiga fält finns
-        if (!room.roomType || !room.floorNmbr || !room.roomNmbr || room.isBooked === undefined) {
-            return sendError(400, "Please check room details.");
+    try {
+        // Kontrollera om event.body existerar och innehåller en array
+        if (!event.body) {
+            return sendError(400, "Request body is missing.");
         }
 
-        // Kontrollera att roomType är giltig
-        const validateRoomTypes = ["single", "double", "suite"];
-        if (!validateRoomTypes.includes(room.roomType)) {
-            return sendError(400, `Invalid room type: ${room.roomType}. Must be single, double, or suite.`);
+        const rooms = JSON.parse(event.body);
+
+        // Kontrollera om det är en array
+        if (!Array.isArray(rooms)) {
+            return sendError(400, "Body must be an array of rooms.");
         }
 
-        // Tilldela standardpris och antal sängar om de inte finns
-        const { price, beds } = getDefaultPriceAndBeds(room.roomType);
-        const roomPrice = room.price || price;
-        const roomBeds = room.beds || beds;
+        // Loop igenom varje rum i arrayen
+        for (let room of rooms) {
+            // Kontrollera att alla nödvändiga fält finns
+            if (!room.roomType || !room.floorNmbr || !room.roomNmbr) {
+                return sendError(400, "Please check room details. 'roomType', 'floorNmbr', and 'roomNmbr' are required.");
+            }
 
-        // Generera roomId baserat på rumsnumret och roomType
-        const roomId = generateRoomId(room.roomType, room.roomNmbr);
+            // Kontrollera att roomType är giltig
+            const validateRoomTypes = ["single", "double", "suite"];
+            if (!validateRoomTypes.includes(room.roomType)) {
+                return sendError(400, `Invalid room type: ${room.roomType}. Must be single, double, or suite.`);
+            }
 
-        // Lägg till rummet i databasen
-        const result = await addRoomsToDb(
-            room.roomType,
-            roomId,
-            roomPrice,
-            room.isBooked,
-            roomBeds,
-            room.floorNmbr,
-            room.roomNmbr
-        );
-        if (result !== true) {
-            return sendError(500, result.false);
+            // Anropa funktionen för att lägga till rummet i databasen
+            const result = await addRoomToDb(room.roomType, room.floorNmbr, room.roomNmbr);
+
+            // Kontrollera resultatet från addRoomToDb
+            if (!result.success) {
+                return sendError(500, result.message || "Failed to add room.");
+            }
         }
+
+        // Kolla om rum lagts till korrekt
+        return sendResponse(200, "All rooms added successfully.");
+    } catch (error) {
+        console.error("Handler error:", error.message);
+        return sendError(500, "Internal server error.");
     }
-
-    // Om alla rum lagts till korrekt
-    return sendResponse(200, "All rooms added successfully.");
 };
