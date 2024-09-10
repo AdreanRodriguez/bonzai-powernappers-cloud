@@ -3,8 +3,8 @@ const { db } = require("../../services/index.js");
 async function getRoom(roomType) {
   try {
     const { Items } = await db.scan({
-      tableName: "bonzai-rooms-db",
-      FilterExpressions: "#roomType = :roomType AND #isBooked = isBookedFalse",
+      TableName: "bonzai-rooms-db",
+      FilterExpression: "#roomType = :roomType AND #isBooked = :isBookedFalse",
 
       ExpressionAttributeNames: {
         "#roomType": "roomType",
@@ -29,5 +29,4 @@ async function getRoom(roomType) {
     return { success: false, message: error.message };
   }
 }
-
 module.exports = { getRoom };
