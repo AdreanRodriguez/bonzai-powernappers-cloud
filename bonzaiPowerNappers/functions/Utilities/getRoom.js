@@ -29,4 +29,5 @@ async function getRoom(roomType) {
     return { success: false, message: error.message };
   }
 }
+
 module.exports = { getRoom };
