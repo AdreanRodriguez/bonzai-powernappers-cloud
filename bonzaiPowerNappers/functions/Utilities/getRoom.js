@@ -8,8 +8,8 @@ async function getRoom(roomType) {
 
         const { Items } = await db.scan({
 
-            tableName: 'bonzai-rooms-db',
-            FilterExpressions: "#roomType = :roomType AND #isBooked = isBookedFalse",
+            TableName: 'bonzai-rooms-db',
+            FilterExpression: "#roomType = :roomType AND #isBooked = :isBookedFalse",
 
             ExpressionAttributeNames: {
                 "#roomType": "roomType",
@@ -41,3 +41,5 @@ async function getRoom(roomType) {
     }
 
 }
+
+module.exports = { getRoom }
