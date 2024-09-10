@@ -24,7 +24,7 @@ async function getRoom(roomType) {
 
         })
 
-        if (Items) {
+        if (Items.length > 0) {
 
             return {
                 success: true,
@@ -37,7 +37,7 @@ async function getRoom(roomType) {
         }
     } catch (error) {
 
-        return { success:false, message :error.message }
+        return { success: false, message: error.message }
     }
 
 }

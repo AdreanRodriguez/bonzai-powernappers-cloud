@@ -7,7 +7,7 @@ async function addBookingToDb(bookingInformation, room) {
             await db.put({
                 TableName: 'bonzai-booking-db',
                 Item: {
-                    bookingId: bookingInformation.bookingId + room.roomId,
+                    bookingId: `${bookingInformation.bookingId}-${room.roomId}`,
                     orderId: bookingInformation.bookingId,
                     checkIn: JSON.stringify(bookingInformation.checkIn),
                     checkOut: JSON.stringify(bookingInformation.checkOut),
@@ -17,10 +17,10 @@ async function addBookingToDb(bookingInformation, room) {
                     bookedRoom: room
                 }
             })
-           return{
-            success: true,
-            message: 'Booking added successfully'
-           }
+            return {
+                success: true,
+                message: 'Booking added successfully'
+            }
 
         } catch (error) {
             return {
@@ -31,7 +31,7 @@ async function addBookingToDb(bookingInformation, room) {
     } else {
         return {
             success: false,
-            message : 'Can not add booking , please try again'
+            message: 'Can not add booking , please try again'
         }
     }
 }
