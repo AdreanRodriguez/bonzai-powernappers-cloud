@@ -40,6 +40,7 @@ exports.handler = async (event) => {
           const room = response.item;
           const upResponse = await updateRoomStatus(room, true);
           if (upResponse.success) {
+            delete room.isBooked;
             bookedRooms.push(room);
             nmbrOfBookedGuests += room.beds;
             totalPrice += room.price;
