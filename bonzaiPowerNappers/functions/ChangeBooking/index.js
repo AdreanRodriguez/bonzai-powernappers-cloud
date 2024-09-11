@@ -1,11 +1,9 @@
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { getOrder } = require("../Utilities/getOrder.js");
-const { deleteBookingInDb } = require("../Utilities/deleteBookingInDb.js");
-const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
-const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js")
-const { getRoom } = require("../Utilities/getRoom.js");
 const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
 const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
+const { getRoomUpdateStatus } = require("../Utilities/getRoomUpdateStatus.js");
+const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js");
 
 exports.handler = async (event) => {
     try {
@@ -31,9 +29,6 @@ exports.handler = async (event) => {
             return sendError(404, orderResponse.message);
         }
 
-        let totalPrice = 0;
-        const bookedRooms = [];
-
         const checkInDate = new Date(checkIn);
         const checkOutDate = new Date(checkOut);
         const numberOfNights = Math.ceil(
@@ -55,37 +50,14 @@ exports.handler = async (event) => {
             return sendError(400, deleteUpdateResponse.message)
         }
 
-
-
-        // const {success, bookedRooms, totalPrice, message } = funcName(roomTypes)
-        // if (!success) {
-        //     return sendError(400, message)
-        // }
-        //
-        // bookingInformation.bookedRooms = bookedRooms;
-        // bookingInformation.totalPrice = totalPrice *= numberOfNights;
-        // 
-
-        // <----- delete
-        for (let i = 0; i < roomTypes.length; i++) {
-            const roomResponse = await getRoom(roomTypes[i]);
-            if (!roomResponse.success) {
-                return sendError(402, roomResponse.message);
-            }
-
-            const room = roomResponse.item;
-            const updateResponse = await updateRoomStatus(room, true);
-            if (!updateResponse.success) {
-                return sendError(403, updateResponse.message);
-            }
-            delete room.isBooked;
-            bookedRooms.push(room);
-            totalPrice += room.price;
+        const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
+        if (!success) {
+            return sendError(400, message)
         }
 
         bookingInformation.bookedRooms = bookedRooms;
         bookingInformation.totalPrice = totalPrice *= numberOfNights;
-        // ---->
+
         for (let i = 0; i < bookedRooms.length; i++) {
             const bookingResponse = await addBookingToDb(bookingInformation, bookedRooms[i]);
             if (!bookingResponse.success) {

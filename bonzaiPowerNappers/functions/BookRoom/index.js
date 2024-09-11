@@ -1,9 +1,9 @@
-const { sendResponse, sendError } = require("../../responses/index.js");
 const { v4: uuid } = require("uuid");
-const { getRoom } = require("../Utilities/getRoom.js");
 const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
-const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
+const { sendResponse, sendError } = require("../../responses/index.js");
 const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
+const { getRoomUpdateStatus } = require("../Utilities/getRoomUpdateStatus.js");
+
 
 exports.handler = async (event) => {
     try {
@@ -14,7 +14,6 @@ exports.handler = async (event) => {
 
         if (checkIn && checkOut && roomTypes && guestName && guestEmail && nmbrOfGuests) {
             if (compareNmbrOfPeople(nmbrOfGuests, roomTypes)) {
-                let totalPrice = 0;
 
                 const checkInDate = new Date(checkIn);
                 const checkOutDate = new Date(checkOut);
@@ -32,27 +31,14 @@ exports.handler = async (event) => {
                     nmbrOfGuests,
                 };
 
-                const bookedRooms = [];
-
-                for (let i = 0; i < roomTypes.length; i++) {
-                    const response = await getRoom(roomTypes[i]);
-                    if (response.success) {
-                        const room = response.item;
-                        const upResponse = await updateRoomStatus(room, true);
-                        if (upResponse.success) {
-                            delete room.isBooked;
-                            bookedRooms.push(room);
-                            totalPrice += room.price;
-                        } else {
-                            return sendError(400, upResponse.message);
-                        }
-                    } else {
-                        return sendError(404, response.message);
-                    }
+                const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
+                if (!success) {
+                    return sendError(400, message)
                 }
 
                 bookingInformation.bookedRooms = bookedRooms;
                 bookingInformation.totalPrice = totalPrice *= numberOfNights;
+
                 for (let i = 0; i < bookedRooms.length; i++) {
                     const response = await addBookingToDb(bookingInformation, bookedRooms[i]);
                     if (!response.success) {
