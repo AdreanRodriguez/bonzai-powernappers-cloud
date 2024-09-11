@@ -59,7 +59,7 @@ exports.handler = async (event) => {
         }
 
         bookingInformation.bookedRooms = bookedRooms;
-        bookingInformation.totalPrice = totalPrice *= numberOfNights;
+        bookingInformation.totalPrice = totalPrice * numberOfNights;
 
         for (let room of bookedRooms) {
             const bookingResponse = await addBookingToDb(bookingInformation, room);

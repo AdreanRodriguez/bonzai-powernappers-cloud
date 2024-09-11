@@ -43,7 +43,7 @@ exports.handler = async (event) => {
         }
         // Lägger till bokade rum och totalpris i bookingInformation, som sedan blir bokningsbekräftelse i return.
         bookingInformation.bookedRooms = bookedRooms;
-        bookingInformation.totalPrice = totalPrice *= numberOfNights;
+        bookingInformation.totalPrice = totalPrice * numberOfNights;
 
         for (let room of bookedRooms) {
             const response = await addBookingToDb(bookingInformation, room);
