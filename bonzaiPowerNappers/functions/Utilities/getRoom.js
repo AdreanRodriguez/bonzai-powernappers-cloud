@@ -33,7 +33,7 @@ async function getRoom(roomType) {
 
         } else {
 
-            return { success: false, message: 'No empty rooms' }
+            return { success: false, message: 'No rooms available' }
         }
     } catch (error) {
 
