@@ -4,12 +4,16 @@ const { db } = require("../../services/index.js");
 exports.handler = async (event) => {
   try {
     const { Items } = await db.scan({
-        TableName: "bonzai-booking-db",
-        FilterExpression: "attribute_exists(#DYNOBASE_bookingId)",
-        ExpressionAttributeNames: { "#DYNOBASE_bookingId": "bookingId" },
+      TableName: "bonzai-booking-db",
+      FilterExpression: "attribute_exists(#DYNOBASE_bookingId)",
+      ExpressionAttributeNames: { "#DYNOBASE_bookingId": "bookingId" },
     });
-    return sendResponse(200, { message: Items });
+    if (Items.length < 1) {
+      return sendError(404, "No booking found");
+    } else {
+      return sendResponse(200, Items);
+    }
   } catch (error) {
-    return sendError(404, error.message)
+    return sendError(404, error.message);
   }
 };
