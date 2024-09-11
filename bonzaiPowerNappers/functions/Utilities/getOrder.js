@@ -4,7 +4,7 @@ async function getOrder(id) {
     try {
         const { Items } = await db.scan({
             TableName: "bonzai-booking-db",
-            FilterExpression: "begins_with(#bookingId, :id )",
+            FilterExpression: "begins_with(#bookingId, :id )", //Eftersom bookingID består av orderId + roomId måste det sökas på första delen av bookingId
             ExpressionAttributeNames: { "#bookingId": "bookingId" },
             ExpressionAttributeValues: { ":id": id },
         });

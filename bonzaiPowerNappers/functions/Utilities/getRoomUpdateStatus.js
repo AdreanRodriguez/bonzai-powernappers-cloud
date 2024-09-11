@@ -10,7 +10,6 @@ async function getRoomUpdateStatus(roomTypes) {
         if (!roomResponse.success) {
             return { success: false, message: roomResponse.message };
         }
-
         const room = roomResponse.item;
         const updateResponse = await updateRoomStatus(room, true);
         if (!updateResponse.success) {
@@ -19,7 +18,6 @@ async function getRoomUpdateStatus(roomTypes) {
                 message: updateResponse.message
             };
         }
-
         delete room.isBooked;
         bookedRooms.push(room);
         totalPrice += room.price;

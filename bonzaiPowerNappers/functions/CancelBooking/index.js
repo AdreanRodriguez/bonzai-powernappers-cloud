@@ -6,11 +6,11 @@ exports.handler = async (event) => {
     const { id } = event.pathParameters;
     // Vi sparar returen från getOrder i en variabel
     // Den hämtar alla ordrar med id som skrivs in 
-    const response = await getOrder(id);
-    if (!response.success) {
-        return sendError(404, response.message);
+    const orderResponse = await getOrder(id);
+    if (!orderResponse.success) {
+        return sendError(404, orderResponse.message);
     }
-    const deleteUpdateResponse = await deleteAndUpdateStatus(response.items)
+    const deleteUpdateResponse = await deleteAndUpdateStatus(orderResponse.items)
     if (!deleteUpdateResponse.success) {
         return sendError(404, deleteUpdateResponse.message)
     }

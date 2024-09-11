@@ -60,7 +60,7 @@ exports.handler = async (event) => {
 
         bookingInformation.bookedRooms = bookedRooms;
         bookingInformation.totalPrice = totalPrice * numberOfNights;
-
+        // För varje bokat rum som vi gör (room) så lägger vi in room i vår db tillsammans med vår bokningsinformation
         for (let room of bookedRooms) {
             const bookingResponse = await addBookingToDb(bookingInformation, room);
             if (!bookingResponse.success) {

@@ -1,6 +1,7 @@
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { db } = require("../../services/index.js");
 
+// Hämtar alla bokningar
 exports.handler = async (event) => {
     try {
         const { Items } = await db.scan({
