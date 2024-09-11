@@ -2,6 +2,7 @@ const { sendResponse, sendError } = require("../../responses/index.js");
 const { getOrder } = require("../Utilities/getOrder.js");
 const { deleteBookingInDb } = require("../Utilities/deleteBookingInDb.js");
 const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
+const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js")
 const { getRoom } = require("../Utilities/getRoom.js");
 const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
 const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
@@ -40,27 +41,32 @@ exports.handler = async (event) => {
         );
 
         const bookingInformation = {
-            roomTypes,
-            nmbrOfGuests,
             checkIn: checkInDate.toLocaleDateString("se-SV"),
             checkOut: checkOutDate.toLocaleDateString("se-SV"),
             bookingId: orderResponse.items[0].orderId,
-            guestEmail: orderResponse.items[0].guestEmail,
+            roomTypes,
             guestName: orderResponse.items[0].guestName,
+            guestEmail: orderResponse.items[0].guestEmail,
+            nmbrOfGuests,
         };
 
-        for (let i = 0; i < orderResponse.items.length; i++) {
-            const deleteResponse = await deleteBookingInDb(orderResponse.items[i]);
-            if (!deleteResponse.success) {
-                return sendError(400, deleteResponse.message);
-            }
-
-            const updateResponse = await updateRoomStatus(orderResponse.items[i].bookedRoom, false);
-            if (!updateResponse.success) {
-                return sendError(401, updateResponse.message);
-            }
+        const deleteUpdateResponse = await deleteAndUpdateStatus(orderResponse.items)
+        if (!deleteUpdateResponse.success) {
+            return sendError(400, deleteUpdateResponse.message)
         }
 
+
+
+        // const {success, bookedRooms, totalPrice, message } = funcName(roomTypes)
+        // if (!success) {
+        //     return sendError(400, message)
+        // }
+        //
+        // bookingInformation.bookedRooms = bookedRooms;
+        // bookingInformation.totalPrice = totalPrice *= numberOfNights;
+        // 
+
+        // <----- delete
         for (let i = 0; i < roomTypes.length; i++) {
             const roomResponse = await getRoom(roomTypes[i]);
             if (!roomResponse.success) {
@@ -79,7 +85,7 @@ exports.handler = async (event) => {
 
         bookingInformation.bookedRooms = bookedRooms;
         bookingInformation.totalPrice = totalPrice *= numberOfNights;
-
+        // ---->
         for (let i = 0; i < bookedRooms.length; i++) {
             const bookingResponse = await addBookingToDb(bookingInformation, bookedRooms[i]);
             if (!bookingResponse.success) {
