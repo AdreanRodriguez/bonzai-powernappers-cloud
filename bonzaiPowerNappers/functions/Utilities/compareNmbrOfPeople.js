@@ -1,8 +1,8 @@
-function compareNmbrOfPeople(nmbrOfGuests, types) {
+function compareNmbrOfPeople(nmbrOfGuests, roomTypes) {
     let nmbrOfbookedGuests = 0
 
-    for (let i = 0; i < types.length; i++) {
-        switch (types[i].toLowerCase()) {
+    for (let type of roomTypes) {
+        switch (type.toLowerCase()) {
             case "single":
                 nmbrOfbookedGuests += 1
                 break;
@@ -12,7 +12,6 @@ function compareNmbrOfPeople(nmbrOfGuests, types) {
             case "suite":
                 nmbrOfbookedGuests += 3
                 break;
-            default:
         }
     }
 

@@ -5,8 +5,8 @@ async function getRoomUpdateStatus(roomTypes) {
     const bookedRooms = [];
     let totalPrice = 0;
 
-    for (let i = 0; i < roomTypes.length; i++) {
-        const roomResponse = await getRoom(roomTypes[i]);
+    for (let type of roomTypes) {
+        const roomResponse = await getRoom(type);
         if (!roomResponse.success) {
             return { success: false, message: roomResponse.message };
         }

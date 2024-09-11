@@ -8,15 +8,16 @@ const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js
 exports.handler = async (event) => {
     try {
         const { id } = event.pathParameters;
+        // Input från body 
         const { nmbrOfGuests, roomTypes, checkIn, checkOut } = JSON.parse(event.body);
-
+        // Kontroll att all nödvändig info skickats in
         if (!nmbrOfGuests || !roomTypes || !checkIn || !checkOut) {
             return sendError(
                 404,
                 "Missing required fields: checkIn, checkOut, roomTypes or nmbrOfGuests."
             );
         }
-
+        // Kontroll att antal gäster stämmer med antal rumstyp
         if (!compareNmbrOfPeople(nmbrOfGuests, roomTypes)) {
             return sendError(
                 404,
@@ -44,28 +45,30 @@ exports.handler = async (event) => {
             guestEmail: orderResponse.items[0].guestEmail,
             nmbrOfGuests,
         };
-
+        // Anropa deleteAndUpdateStatus för att radera varje dokument i db med detta ordernr 
+        // samt uppdatera rummens status isBooked: false
         const deleteUpdateResponse = await deleteAndUpdateStatus(orderResponse.items)
         if (!deleteUpdateResponse.success) {
-            return sendError(400, deleteUpdateResponse.message)
+            return sendError(404, deleteUpdateResponse.message)
         }
-
+        // Tar emot arrayen roomTypes för att hämta alla rum som ska bokas och uppdaterar status isBooked: true på dem i db
+        // samt skapar totalpris per natt och bokning (alla rum)
         const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
         if (!success) {
-            return sendError(400, message)
+            return sendError(404, message)
         }
 
         bookingInformation.bookedRooms = bookedRooms;
         bookingInformation.totalPrice = totalPrice *= numberOfNights;
 
-        for (let i = 0; i < bookedRooms.length; i++) {
-            const bookingResponse = await addBookingToDb(bookingInformation, bookedRooms[i]);
+        for (let room of bookedRooms) {
+            const bookingResponse = await addBookingToDb(bookingInformation, room);
             if (!bookingResponse.success) {
-                return sendError(406, bookingResponse.message);
+                return sendError(404, bookingResponse.message);
             }
         }
         return sendResponse(200, bookingInformation);
     } catch (error) {
-        return sendError(407, error.message);
+        return sendError(404, error.message);
     }
 };
