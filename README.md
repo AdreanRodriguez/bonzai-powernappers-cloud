@@ -196,7 +196,7 @@ Response
     "roomTypes": [
       "double"
     ],
-    "nmbrOfGuests": 3,
+    "nmbrOfGuests": 2,
     "checkIn": "2024-12-20",
     "checkOut": "2024-12-22",
     "bookingId": "52bd086c",
