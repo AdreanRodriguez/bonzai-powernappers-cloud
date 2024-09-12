@@ -1,7 +1,8 @@
 const { db } = require("../../services/index.js");
 
-async function getRoom(roomType) {
+async function getRooms(roomType) {
     try {
+        // söker efter alla rum som INTE är bokade med den typ av rum som är i roomType
         // söker efter alla rum som INTE är bokade med den typ av rum som är i roomType
         const { Items } = await db.scan({
             TableName: 'bonzai-rooms-db',
@@ -20,11 +21,12 @@ async function getRoom(roomType) {
         }
         return {
             success: true,
-            item: Items[0]
+            items: Items
         }
     } catch (error) {
+        return { success: false, message: error.message }
         return { success: false, message: error.message }
     }
 }
 
-module.exports = { getRoom }
+module.exports = { getRooms }

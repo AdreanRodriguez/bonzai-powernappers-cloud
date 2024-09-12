@@ -1,9 +1,10 @@
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { getOrder } = require("../Utilities/getOrder.js");
-const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
 const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
-const { getRoomUpdateStatus } = require("../Utilities/getRoomUpdateStatus.js");
 const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js");
+const { addAndUpdateStatus } = require("../Utilities/addandUpdateStatus.js");
+const { compareChanges } = require("../Utilities/compareChanges.js");
+const { getRoomsToBook } = require("../Utilities/getRoomsToBook.js");
 
 exports.handler = async (event) => {
     try {
@@ -24,7 +25,7 @@ exports.handler = async (event) => {
                 "Wrong amount of people booked."
             );
         }
-
+        // hämtar alla ordrar som tillhör bookingId
         const orderResponse = await getOrder(id);
         if (!orderResponse.success) {
             return sendError(404, orderResponse.message);
@@ -35,38 +36,50 @@ exports.handler = async (event) => {
         const numberOfNights = Math.ceil(
             (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
         );
-
+        if (numberOfNights < 1) {
+            return sendError(404, "Please check dates!");
+        }
         const bookingInformation = {
             checkIn: checkInDate.toLocaleDateString("se-SV"),
             checkOut: checkOutDate.toLocaleDateString("se-SV"),
-            bookingId: orderResponse.items[0].orderId,
+            bookingId: id,
             roomTypes,
             guestName: orderResponse.items[0].guestName,
             guestEmail: orderResponse.items[0].guestEmail,
             nmbrOfGuests,
         };
-        // Anropa deleteAndUpdateStatus för att radera varje dokument i db med detta ordernr 
-        // samt uppdatera rummens status isBooked: false
-        const deleteUpdateResponse = await deleteAndUpdateStatus(orderResponse.items)
-        if (!deleteUpdateResponse.success) {
-            return sendError(404, deleteUpdateResponse.message)
-        }
-        // Tar emot arrayen roomTypes för att hämta alla rum som ska bokas och uppdaterar status isBooked: true på dem i db
-        // samt skapar totalpris per natt och bokning (alla rum)
-        const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
-        if (!success) {
-            return sendError(404, message)
+        // compareChanges är en function som kontrollerar hur tidigare ordrar ska hanteras 
+        // oldOrders är ordrar som inte matchar roomTypes och ska tas bort
+        // roomsToSave är ordrar som matchar roomTypes och ska sparas
+        // roomTypesToAdd är de extra typerna som måste bokas  
+        const { oldOrders, roomsToSave, roomTypesToAdd, savedTotalPrice } = compareChanges(orderResponse.items, roomTypes);
+
+        // tar bort bokningar från databasen och updaterar isBooked för rum
+        const deleteResponse = await deleteAndUpdateStatus(oldOrders);
+        if (!deleteResponse.success) {
+            return sendError(404, deleteResponse.message);
         }
 
-        bookingInformation.bookedRooms = bookedRooms;
-        bookingInformation.totalPrice = totalPrice * numberOfNights;
-        // För varje bokat rum som vi gör (room) så lägger vi in room i vår db tillsammans med vår bokningsinformation
-        for (let room of bookedRooms) {
-            const bookingResponse = await addBookingToDb(bookingInformation, room);
-            if (!bookingResponse.success) {
-                return sendError(404, bookingResponse.message);
-            }
+        // getRoomsToBook är en funktion som hämtar alla de rum som användaren vill boka och lägger dem i en array
+        const { success, bookedRooms, totalPrice, message } = await getRoomsToBook(roomTypesToAdd);
+        if (!success) {
+            return sendError(404, message);
         }
+
+        // lägger till bokade rum i databasen och updaterar isBooked-status på rum.
+        const response = await addAndUpdateStatus(bookedRooms, bookingInformation);
+        if (!response.success) {
+            return sendError(404, response.message);
+        }
+
+        // Lägger till de rum som redan fanns i bokningsdatabasen och som tillhör ordern.
+        roomsToSave.forEach(room => {
+            bookedRooms.push(room);
+        });
+
+        bookingInformation.bookedRooms = bookedRooms;
+        bookingInformation.totalPrice = (totalPrice + savedTotalPrice) * numberOfNights;
+
         return sendResponse(200, bookingInformation);
     } catch (error) {
         return sendError(404, error.message);

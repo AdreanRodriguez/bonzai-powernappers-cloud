@@ -1,18 +1,16 @@
 const { v4: uuid } = require("uuid");
-const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
-const { getRoomUpdateStatus } = require("../Utilities/getRoomUpdateStatus.js");
+const { getRoomsToBook } = require("../Utilities/getRoomsToBook.js");
+const { addAndUpdateStatus } = require("../Utilities/addandUpdateStatus.js");
 
 exports.handler = async (event) => {
     try {
-
         // Input från body 
         const { checkIn, checkOut, roomTypes, guestName, guestEmail, nmbrOfGuests } = JSON.parse(
             event.body
         );
         // Kontroll att all nödvändig info skickats in
-
         if (!checkIn || !checkOut || !roomTypes || !guestName || !guestEmail || !nmbrOfGuests) {
             return sendError(
                 400,
@@ -20,12 +18,15 @@ exports.handler = async (event) => {
         }
         // Kontroll att antal gäster stämmer med antal sängar
         if (!compareNmbrOfPeople(nmbrOfGuests, roomTypes)) {
-            return sendError(404, "Wrong amount of people booked"); s
+            return sendError(404, "Wrong amount of people booked");
         }
 
         const checkInDate = new Date(checkIn);
         const checkOutDate = new Date(checkOut);                                         //millisec sec min timmar = 1 dygn
         const numberOfNights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (numberOfNights < 1) {
+            return sendError(404, "Please check dates!");
+        }
         const bookingId = uuid().substring(0, 8);
         const bookingInformation = {
             checkIn: checkInDate.toLocaleDateString("se-SV"),
@@ -36,24 +37,23 @@ exports.handler = async (event) => {
             guestEmail,
             nmbrOfGuests,
         };
-        // Lägger önskade rum i en array, samt uppdaterar rumsstatus och totalpris. Returnerar array och totalpris
-        const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
+        // getRoomsToBook är en funktion som hämtar alla de rum som användaren vill boka
+        const { success, bookedRooms, totalPrice, message } = await getRoomsToBook(roomTypes)
         if (!success) {
             return sendError(400, message)
+        }
+        // addAndUpdateStatus är en funktion som uppdatera bokningsdatabasen med nya bokningar samt uppdatera rumsdatabasen med isBooked: true för varje bokat rum
+        const response = await addAndUpdateStatus(bookedRooms, bookingInformation);
+        if (!response.success) {
+            return sendError(400, response.message)
         }
         // Lägger till bokade rum och totalpris i bookingInformation, som sedan blir bokningsbekräftelse i return.
         bookingInformation.bookedRooms = bookedRooms;
         bookingInformation.totalPrice = totalPrice * numberOfNights;
 
-        for (let room of bookedRooms) {
-            const response = await addBookingToDb(bookingInformation, room);
-            if (!response.success) {
-                return sendError(404, response.message);
-            }
-        }
         return sendResponse(200, bookingInformation);
 
     } catch (error) {
         return sendError(404, error.message);
-    }
-};
+    };
+}
