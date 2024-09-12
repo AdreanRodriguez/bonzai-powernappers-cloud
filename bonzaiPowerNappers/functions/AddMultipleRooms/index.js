@@ -16,11 +16,17 @@ exports.handler = async (event) => {
             return sendError(400, "Body must be an array of rooms.");
         }
 
-        // Loopa igenom varje rum i arrayen
+        if (rooms.length < 1) {
+            return sendError(400, "Please add at least one room");
+        }
+
         for (let room of rooms) {
             // Kontrollera att alla nödvändiga fält finns
             if (!room.roomType || !room.floorNmbr || !room.roomNmbr) {
-                return sendError(400, "Please enter required information. ('roomType', 'floorNmbr', and 'roomNmbr').");
+                return sendError(
+                    400,
+                    "Please enter required information. ('roomType', 'floorNmbr', and 'roomNmbr')."
+                );
             }
 
             // Anropa funktionen för att lägga till rummet i databasen

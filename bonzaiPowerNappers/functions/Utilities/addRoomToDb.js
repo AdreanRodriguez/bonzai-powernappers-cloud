@@ -1,12 +1,13 @@
 const { db } = require("../../services");
 
+// Lägger till rum i databasen
 async function addRoomToDb(roomType, floorNmbr, roomNmbr) {
     let roomId = "";
     let price = 0;
     let beds = 0;
     let isBooked = false;
 
-    switch (roomType) {
+    switch (roomType.toLowerCase()) {
         case "single":
             roomId = `SR${floorNmbr}${roomNmbr}`;
             price = 500;

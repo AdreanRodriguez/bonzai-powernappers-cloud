@@ -1,84 +1,73 @@
 const { sendResponse, sendError } = require("../../responses/index.js");
 const { getOrder } = require("../Utilities/getOrder.js");
-const { deleteBookingInDb } = require("../Utilities/deleteBookingInDb.js");
-const { updateRoomStatus } = require("../Utilities/updateRoomStatus.js");
-const { getRoom } = require("../Utilities/getRoom.js");
 const { addBookingToDb } = require("../Utilities/addBookingToDb.js");
+const { compareNmbrOfPeople } = require("../Utilities/compareNmbrOfPeople.js");
+const { getRoomUpdateStatus } = require("../Utilities/getRoomUpdateStatus.js");
+const { deleteAndUpdateStatus } = require("../Utilities/deleteAndUpdateStatus.js");
 
 exports.handler = async (event) => {
     try {
         const { id } = event.pathParameters;
+        // Input från body 
         const { nmbrOfGuests, roomTypes, checkIn, checkOut } = JSON.parse(event.body);
-
+        // Kontroll att all nödvändig info skickats in
         if (!nmbrOfGuests || !roomTypes || !checkIn || !checkOut) {
-            return sendError(404, "Missing required fields: checkIn, checkOut, roomTypes or nmbrOfGuests.");
+            return sendError(
+                404,
+                "Missing required fields: checkIn, checkOut, roomTypes or nmbrOfGuests."
+            );
         }
+        // Kontroll att antal gäster stämmer med antal rumstyp
+        if (!compareNmbrOfPeople(nmbrOfGuests, roomTypes)) {
+            return sendError(
+                404,
+                "Wrong amount of people booked."
+            );
+        }
+
         const orderResponse = await getOrder(id);
         if (!orderResponse.success) {
             return sendError(404, orderResponse.message);
         }
 
-        let totalPrice = 0;
-        let nmbrOfBookedGuests = 0;
-        const bookedRooms = [];
-        const nmbrOfBookedNights = checkOut.getDay() - checkIn.getDay();
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+        const numberOfNights = Math.ceil(
+            (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         const bookingInformation = {
+            checkIn: checkInDate.toLocaleDateString("se-SV"),
+            checkOut: checkOutDate.toLocaleDateString("se-SV"),
+            bookingId: orderResponse.items[0].orderId,
             roomTypes,
-            nmbrOfGuests,
-            checkIn: new Date(checkIn),
-            checkOut: new Date(checkOut),
-            orderId: orderResponse.items[0].orderId,
-            guestEmail: orderResponse.items[0].guestEmail,
             guestName: orderResponse.items[0].guestName,
+            guestEmail: orderResponse.items[0].guestEmail,
+            nmbrOfGuests,
         };
-
-        for (let i = 0; i < orderResponse.items.length; i++) {
-            const deleteResponse = await deleteBookingInDb(orderResponse.items[i]);
-            if (!deleteResponse.success) {
-                return sendError(404, deleteResponse.message);
-            }
-
-            const updateResponse = await updateRoomStatus(orderResponse.items[i], false);
-            if (!updateResponse.success) {
-                return sendError(404, updateResponse.message);
-            }
+        // Anropa deleteAndUpdateStatus för att radera varje dokument i db med detta ordernr 
+        // samt uppdatera rummens status isBooked: false
+        const deleteUpdateResponse = await deleteAndUpdateStatus(orderResponse.items)
+        if (!deleteUpdateResponse.success) {
+            return sendError(404, deleteUpdateResponse.message)
+        }
+        // Tar emot arrayen roomTypes för att hämta alla rum som ska bokas och uppdaterar status isBooked: true på dem i db
+        // samt skapar totalpris per natt och bokning (alla rum)
+        const { success, bookedRooms, totalPrice, message } = await getRoomUpdateStatus(roomTypes)
+        if (!success) {
+            return sendError(404, message)
         }
 
-        for (let i = 0; i < roomTypes.length; i++) {
-            const roomResponse = await getRoom(roomTypes[i]);
-            if (!roomResponse.success) {
-                return sendError(404, updateResponse.message);
-            }
-
-            const room = roomResponse.item;
-            const updateResponse = await updateRoomStatus(room, true);
-            if (!updateResponse.success) {
-                return sendError(404, updateRespons.message);
-            }
-            bookedRooms.push(room);
-            totalPrice += room.price;
-            nmbrOfBookedGuests += room.beds;
-        }
-
-        if (nmbrOfBookedGuests !== nmbrOfGuests) {
-            for (let i = 0; i < bookedRooms.length; i++) {
-                const updateResponse = await updateRoomStatus(room, true);
-                if (!updateResponse.success) {
-                    return sendError(404, updateRespons.message);
-                }
-            }
-            return sendError(404, "Not right amount of people booked");
-        }
         bookingInformation.bookedRooms = bookedRooms;
-        bookingInformation.totalPrice = totalPrice *= nmbrOfBookedNights;
-
-        for (let i = 0; i < bookedRooms.length; i++) {
-            const bookingResponse = await addBookingToDb(bookingInformation, bookedRooms[i]);
+        bookingInformation.totalPrice = totalPrice * numberOfNights;
+        // För varje bokat rum som vi gör (room) så lägger vi in room i vår db tillsammans med vår bokningsinformation
+        for (let room of bookedRooms) {
+            const bookingResponse = await addBookingToDb(bookingInformation, room);
             if (!bookingResponse.success) {
                 return sendError(404, bookingResponse.message);
             }
         }
-        return sendResponse(200, { message: "ChangeBooking" });
+        return sendResponse(200, bookingInformation);
     } catch (error) {
         return sendError(404, error.message);
     }
