@@ -29,18 +29,6 @@ async function getRoomsToBook(roomTypes) {
             totalPrice += roomToAdd[0].price;
             bookedRooms.push(roomToAdd[0]);
         }
-
-
-        // kontollerar så att det inte finns två rum med samma roomId
-        // const foundItem = bookedRooms.some((item) => item.roomId === roomToAdd[0].roomId)
-        // if (foundItem) {
-        //     return {
-        //         success: false,
-        //         message: "not enough empty rooms"
-        //     }
-        // }
-
-
     }
 
     if (roomTypes.length !== bookedRooms.length) { //roomTypes är de rum användaren vill lägga till.
