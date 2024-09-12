@@ -11,7 +11,7 @@ function compareChanges(orders, newRoomTypes) {
                 if (oldOrders[i].bookedRoom.roomType === type) {
                     const roomToSave = oldOrders.splice(i, 1)
                     savedTotalPrice += roomToSave[0].bookedRoom.price
-                    roomsToSave.push(roomToSave[0])
+                    roomsToSave.push(roomToSave[0].bookedRoom)
                     foundRoom = true;
                 }
             }
