@@ -55,9 +55,5 @@ exports.handler = async (event) => {
 
     } catch (error) {
         return sendError(404, error.message);
-    }
-
-} catch (error) {
-    return sendError(404, error.message);
+    };
 }
-};
