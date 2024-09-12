@@ -197,8 +197,8 @@ Response
       "double"
     ],
     "nmbrOfGuests": 3,
-    "checkIn": "2024-12-20T00:00:00.000Z",
-    "checkOut": "2024-12-22T00:00:00.000Z",
+    "checkIn": "2024-12-20",
+    "checkOut": "2024-12-22",
     "bookingId": "52bd086c",
     "guestEmail": "min@epost.nu",
     "guestName": "MittNamn",
