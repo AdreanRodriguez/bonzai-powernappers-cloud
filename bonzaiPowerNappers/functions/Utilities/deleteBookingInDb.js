@@ -1,20 +1,19 @@
-const { sendError, sendResponse } = require("../../responses/index.js");
 const { db } = require("../../services/index.js");
 
-async function deleteBookingInDb( item ) {
-    const params = {
-        TableName: "bonzai-booking-db",
-        Key: {
-            bookingId: item.bookingId
-        }
-    };
-
+async function deleteBookingInDb(item) {
     try {
-        await db.delete(params);
-        return sendResponse(200, `Booking ${item.bookingId} was successfully deleted.`);
+        await db.delete({
+            TableName: "bonzai-booking-db",
+            Key: {
+                bookingId: item.bookingId
+            }
+        });
+        return { success: true }
     } catch (error) {
-        console.error("Error deleting booking", error.message);
-        return sendError(500, `Failed to delete booking ${item.bookingId}: ${error.message} !`);
+        return {
+            success: false,
+            message: `Failed to delete booking ${item.bookingId}: ${error.message} !`
+        }
     }
 }
 

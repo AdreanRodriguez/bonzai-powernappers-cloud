@@ -9,10 +9,14 @@ const { getRoomsToBook } = require("../Utilities/getRoomsToBook.js");
 exports.handler = async (event) => {
     try {
         const { id } = event.pathParameters;
+        // Input från body 
         const { nmbrOfGuests, roomTypes, checkIn, checkOut } = JSON.parse(event.body);
-
+        // Kontroll att all nödvändig info skickats in
         if (!nmbrOfGuests || !roomTypes || !checkIn || !checkOut) {
-            return sendError(404, "Missing required fields: checkIn, checkOut, roomTypes or nmbrOfGuests.");
+            return sendError(
+                404,
+                "Missing required fields: checkIn, checkOut, roomTypes or nmbrOfGuests."
+            );
         }
         // Kontroll att antal gäster stämmer med antal rumstyp
         if (!compareNmbrOfPeople(nmbrOfGuests, roomTypes)) {
@@ -40,12 +44,9 @@ exports.handler = async (event) => {
             checkOut: checkOutDate.toLocaleDateString("se-SV"),
             bookingId: id,
             roomTypes,
-            nmbrOfGuests,
-            checkIn: new Date(checkIn),
-            checkOut: new Date(checkOut),
-            orderId: orderResponse.items[0].orderId,
-            guestEmail: orderResponse.items[0].guestEmail,
             guestName: orderResponse.items[0].guestName,
+            guestEmail: orderResponse.items[0].guestEmail,
+            nmbrOfGuests,
         };
         // compareChanges är en function som kontrollerar hur tidigare ordrar ska hanteras 
         // oldOrders är ordrar som inte matchar roomTypes och ska tas bort
