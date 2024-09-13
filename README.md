@@ -1,5 +1,12 @@
 # bonzai-powernappers-cloud / Gruppuppgift Bonz.ai
 
+### När du har klonat ner repot så behöver du skapa en local.yml fil innuti mappen bonzaiPowerNappers
+
+```
+organisation: namnet på din organisation i serverless
+iamRole: din ARN adress för din lambda roll, dynamodb access
+```
+
 ### Endpoints :
 
 ### GET
